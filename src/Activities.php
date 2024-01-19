@@ -62,8 +62,8 @@ function hamtaAllaAktiviteter(): Response {
  */
 function hamtaEnskildAktivitet(string $id): Response {
     //kontrollera inparameter
-    $kontrolleratId=filter_var($id, FILTER_VALIDATE_INT);
-    if($kontrolleratId===false || $kontrolleratId<1){
+    $kontrolleradId=filter_var($id, FILTER_VALIDATE_INT);
+    if($kontrolleradId===false || $kontrolleradId<1){
         $retur=new stdClass();
         $retur->error=['Bad request', 'Ogiltigt id'];
         return new Response($retur, 400);
@@ -75,7 +75,7 @@ function hamtaEnskildAktivitet(string $id): Response {
 
     //Skicka fråga
     $stmt = $db->prepare("SELECT id, namn FROM aktiviteter WHERE id = :id");
-    $result=$stmt->execute(['id'=>$kontrolleratId]);
+    $result=$stmt->execute(['id'=>$kontrolleradId]);
 
     //Kontrollera svar
     if($row=$stmt->fetch(PDO::FETCH_ASSOC)){
@@ -98,7 +98,7 @@ function hamtaEnskildAktivitet(string $id): Response {
  */
 function sparaNyAktivitet(string $aktivitet): Response {
     // Kontrollera indata - rensa bort onödiga tecken
-    $kontrolleradAktivitet=filter_var($aktivitet, FILTER_SANITIZE_ENCODED);
+    $kontrolleradAktivitet=filter_var($aktivitet, FILTER_SANITIZE_SPECIAL_CHARS);
 
     //kontrollera att aktiviteten inte är tom!
     if(trim($aktivitet) === "") {
@@ -142,6 +142,43 @@ function sparaNyAktivitet(string $aktivitet): Response {
  * @return Response
  */
 function uppdateraAktivitet(string $id, string $aktivitet): Response {
+   // Kontrollera indata
+   $kontrolleradId=filter_var($id, FILTER_VALIDATE_INT);
+   $kontrolleradAktivitet=filter_var($aktivitet, FILTER_SANITIZE_SPECIAL_CHARS);
+   $kontrolleradAktivitet=trim($kontrolleradAktivitet);
+
+   if($kontrolleradId===false || $kontrolleradId<1
+       || $kontrolleradAktivitet===''){
+           $retur=new stdClass();
+           $retur->error=['Bad request', 'felaktig indata till uppdatera aktivitet'  ];
+           return new Response($retur, 400);
+       }
+   try{
+   // Koppla databas
+       $db = connectDb();
+
+   // Förbereda fråga
+       $stmt=$db->prepare("UPDATE aktiviteter SET namn=:aktiviteter WHERE id=:id");
+       $stmt->execute([':aktiviteter'=>$kontrolleradAktivitet, 'id'=>$kontrolleradId]);
+
+   // Hantera svar
+   if($stmt->rowCount()===1){
+       $retur=new stdClass();
+       $retur->result=true;
+       $retur->meddelande=['Uppdatera aktivitet lyckades', '1 rad uppdaterad'];
+       return new Response($retur);
+   }else{
+       $retur=new stdClass();
+       $retur->result=false;
+       $retur->meddelande=['Uppdatera aktivitet misslyckades', 'Ingen rad uppdaterad'];
+       return new Response($retur);
+   }
+}catch(Exception $e){
+    $retur=new stdClass();
+    $retur->error=['Bad request', 'Något gick fell vid databasanropet'
+        , $e->getMessage()];
+        return new Response($retur, 400);
+}
 }
 
 /**
