@@ -54,8 +54,61 @@ function tasks(Route $route, array $postData): Response {
  * @param string $sida
  * @return Response
  */
-function hamtaSida(string $sida): Response {
+function hamtaSida(string $sida, int $posterPerSida=10): Response {
+    // Kontrollera indata
+    $sidnummer= filter_var($sida, FILTER_VALIDATE_INT);
+    if($sidnummer===false || $sidnummer<1) {
+        $retur=new stdClass();
+        $retur->error=['Bad request', "Felaktigt angivet sidnummmer"];
+        return new Response($retur, 400);
+        
+    }
+    // Koppla databas
+    $db=connectDb();
+
+    // Hämta poster
+    $stmt=$db->query("SELECT COUNT(*) FROM uppgifter");
+    $antalPoster=$stmt->fetchColumn();
+    if(!$antalPoster) {
+        $retur=new stdClass();
+        $retur->error=['Inga poster kunde hittas'];
+        return new Response($retur, 400);
+    }
+
+    $antalSidor=ceil($antalPoster/$posterPerSida);
+    if($sidnummer>$antalSidor) {
+        $retur=new stdClass();
+        $retur->error=["Bad request", "Felaktigt sidnummer", 'Det finns inte så många sidor'];
+        return new Response($retur, 400);
+    }
+
+    // Hämta poster
+    $forstaPost=($sidnummer-1)*$posterPerSida;
+    $stmt=$db->query("SELECT u.id, datum, tid, beskrivning, aktivitetId, namn "
+    . "FROM uppgifter u INNER JOIN aktiviteter a ON aktivitetId=a.ID "
+    . "ORDER BY datum "
+    . "LIMIT $forstaPost, $posterPerSida");
+    $result=$stmt->fetchAll();
     
+    $uppgifter=[];
+    foreach ($result as $row) {
+        $rad=new stdClass();
+        $rad->id=$row["id"];
+        $rad->activityId=$row["aktivitetId"];
+        $rad->date=$row["datum"];
+        $tid=new DateTime($row['tid']);
+        $rad->time=$tid->format('H:i');
+        $rad->activity=$row["namn"];
+        $rad->description=$row["beskrivning"];
+        $uppgifter[]=$rad;
+        
+    }
+    // Returnera svar
+    $retur=new stdClass();
+    $retur->pages=$antalSidor;
+    $retur->tasks=$uppgifter;
+
+    return new Response($retur);
 }
 
 /**

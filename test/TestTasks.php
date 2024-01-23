@@ -24,8 +24,62 @@ function allaTaskTester(): string {
  */
 function test_HamtaUppgifterSida(): string {
     $retur = "<h2>test_HamtaUppgifterSida</h2>";
-    try {
-        $retur .= "<p class='error'>Inga tester implementerade</p>";
+    try{
+    // Misslyckas med att hämta sida -1
+        $svar=hamtaSida("-1");
+        if($svar->getStatus()===400){
+            $retur.= "<p class='ok'>Misslyckades med att hämta sida -1 som förväntat</p>";
+        } else {
+            $retur.= "<p class='error'>Misslyckades test att hämta sida -1<br>"
+                . $svar->getStatus() . "returnerades istället för förväntat 400</p>";
+        }
+
+    // Misslyckas med att hämta sida 0
+    $svar=hamtaSida("0");
+    if($svar->getStatus()===400){
+        $retur.= "<p class='ok'>Misslyckades med att hämta sida 0 som förväntat</p>";
+    } else {
+        $retur.= "<p class='error'>Misslyckades test att hämta sida 0<br>"
+            . $svar->getStatus() . "returnerades istället för förväntat 400</p>";
+    }
+
+
+    // Misslyckas med att hämta sida 7
+    $svar=hamtaSida("sju");
+    if($svar->getStatus()===400){
+        $retur.= "<p class='ok'>Misslyckades med att hämta sida sju som förväntat</p>";
+    } else {
+        $retur.= "<p class='error'>Misslyckades test att hämta sida sju<br>"
+            . $svar->getStatus() . "returnerades istället för förväntat 400</p>";
+    }
+
+
+    // Lyckas med att hämta sida 1
+    $svar=hamtaSida("1",2);
+    if($svar->getStatus()===200){
+        $retur.= "<p class='ok'>Lyckades med att hämta sida 1</p>";
+        $sista=$svar->getContent()->pages;
+    } else {
+        $retur.= "<p class='error'>Misslyckades test att hämta sida 1<br>"
+            . $svar->getStatus() . "returnerades istället för förväntat 200</p>";
+    }
+
+
+    // Misslyckas med att hämta sida > antal sidor
+    if(isset($sista)){
+        $sista++;
+        $svar= hamtaSida("$sista", 2);
+        if($svar->getStatus()===400){
+            $retur.= "<p class='ok'>Misslyckades med att hämta sida > antal sidor, som förväntat</p>";
+        }else{
+            $retur.= "<p class='error'>Misslyckades test att hämta sida > antal sidor<br>"
+                . $svar->getStatus() . "returnerades istället för förväntat 400</p>";
+        }
+    }
+
+
+    
+        
     } catch (Exception $ex) {
         $retur .= "<p class='error'>Något gick fel, meddelandet säger:<br> {$ex->getMessage()}</p>";
     }
