@@ -189,7 +189,37 @@ function hamtaEnskildUppgift(string $id): Response {
  * @return Response
  */
 function sparaNyUppgift(array $postData): Response {
-    
+    // Kontrollera indata
+    $felmeddelande=KontrolleraIndata($postData);
+    if(count($felmeddelande)>0) {
+    $retur= new stdClass();
+    $retur->error=$felmeddelande;
+    array_unshift($retur->error,'Bad request');
+    return new Response($retur, 400);
+    }
+
+    // Koppla databas
+    $db=connectDb();
+
+    // Exekvera databasfråga
+    $stmt=$db->prepare("INSERT INTO uppgifter (datum, tid, beskrivning, aktivitetid) "
+    ."VALUES (:datum, :tid, :beskrivning, :aktivitetid)");
+    $stmt->execute(['datum'=>$postData['date'], 'tid'=>$postData['time'],
+     'beskrivning'=> trim(filter_var($postData['description']?? '', FILTER_SANITIZE_SPECIAL_CHARS)), 
+     'aktivitetid'=>$postData['activityId']]);
+    // Kontrollera svaret
+    if($stmt->rowCount()===1) {
+        $retur= new stdClass();
+        $retur->id=$db->lastInsertId();
+        $retur->message=['Skapa ny post lyckades', '1 post sparad'];
+        return new Response($retur);
+    }else{
+        $retur= new stdClass();
+        $retur->error=['Fel vid databasanrop', 'kunde inte skapa post'];
+        return new Response($retur, 400);
+    }
+    // Skicka utdata
+
 }
 
 /**
