@@ -47,7 +47,11 @@ function tasks(Route $route, array $postData): Response {
     } catch (Exception $exc) {
         return new Response($exc->getMessage(), 400);
     }
+    
+    // Default return statement
+    return new Response("Unknown request", 400);
 }
+
 
 /**
  * Hämtar alla uppgifter för en angiven sida
@@ -218,7 +222,7 @@ function sparaNyUppgift(array $postData): Response {
         $retur->error=['Fel vid databasanrop', 'kunde inte skapa post'];
         return new Response($retur, 400);
     }
-    // Skicka utdata
+    
 
 }
 
