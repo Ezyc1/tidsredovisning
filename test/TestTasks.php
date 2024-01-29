@@ -426,64 +426,68 @@ function test_KontrolleraIndata(): string {
     $retur = "<h2>test_KontrolleraIndata</h2>";
         
     try {
-        // Lyckas kontrollera datum
-        $svar = KontrolleraIndata(['date'=>'2023-12-31']);
-        if(empty($svar)){
-            $retur .="<p class='ok'>Lyckades kontrollera datum</p>";
-        } else {
-            $retur .="<p class='error'>Misslyckades med att kontrollera datum<br>"
-            . $svar[0]. " returnerades istället för förväntat tom sträng<br>"
+       // Test alla saknas
+       $postdata=[];
+       $svar= KontrolleraIndata($postdata);
+       if(count($svar)===3){
+        $retur .="<p class='ok'>Test alla element saknas lyckades</p>";
+       } else {
+        $retur .="<p class='error'>Test alla element saknas misslyckades<br>"
+        . count($svar) . " felmeddelanden rapporterades istället för förväntat 3<br>"
+        . print_r($svar, true) . "</p>";
+       }
+       // Test datum finns
+       $postdata["date"]=date("Y-m-d");
+       $svar= KontrolleraIndata($postdata);
+       if(count($svar)===2){
+        $retur .="<p class='ok'>Test alla element saknas utom datum lyckades</p>";
+       }else{
+        $retur .="<p class='error'>Test alla element utom datum saknas misslyckades<br>"
+        . count($svar) . " felmeddelanden rapporterades istället för förväntat 2<br>"
+        . print_r($svar, true) . "</p>";
+       }
+       // Test tid finns
+       $postdata["time"]="01:00";
+       $svar= KontrolleraIndata($postdata);
+       if(count($svar)===1){
+        $retur .="<p class='ok'>Test alla element saknas utom tid och datum finns lyckades</p>";
+       } else {
+        $retur .="<p class='error'>Test alla element saknas utom tid och datum finns misslyckades<br>"
+        . count($svar) . " felmeddelanden rapporterades istället för förväntat 1<br>"
+        . print_r($svar, true) . "</p>";
+       }
+       // Test description saknas
+       $postdata["description"]="";
+       $svar= KontrolleraIndata($postdata);
+       if(count($svar)===1){
+        $retur .="<p class='ok'>Test description saknas lyckades</p>";
+       }else{
+            $retur .="<p class='error'>Test description saknas misslyckades<br>"
+        . count($svar) . " felmeddelanden rapporterades istället för förväntat 1<br>"
+        . print_r($svar, true) . "</p>";
+       }
+        // Test aktivitet finns
+        $postdata["activityId"]="1";
+        $svar= KontrolleraIndata($postdata); 
+        if(count($svar)===1){
+         $retur .="<p class='ok'>Test alla element finns lyckades</p>";
+        }else{
+         $retur .="<p class='error'>Test alla element finns misslyckades<br>"
+         . count($svar) . " felmeddelanden rapporterades istället för förväntat 1<br>"
+         . print_r($svar, true) . "</p>";
+        }
+        // Test felaktigt datum 27.3.2023 lyckades
+        $postdata["date"]="27.3.2023";
+        $svar= KontrolleraIndata($postdata);
+        if(count($svar)===0){
+            $retur .="<p class='ok'>Test felaktigt datum 27.3.2023 lyckades</p>";
+        }else{
+            $retur .="<p class='error'>Test felaktigt datum 27.3.2023 misslyckades<br>"
+            . count($svar) . " felmeddelanden rapporterades istället för förväntat 0<br>"
             . print_r($svar, true) . "</p>";
         }
         
-        // Misslyckas kontrollera felaktigt datum
-        $svar = KontrolleraIndata(['date'=>'2023-12-37']);
-        if(empty($svar)){
-            $retur .="<p class='error'>Misslyckades med att kontrollera felaktigt datum<br>"
-            . print_r($svar, true) . "</p>";
-        } else {
-            $retur .="<p class='ok'>Misslyckades kontrollera felaktigt datum</p>";
-        }
 
-        // Lyckas kontrollera tid
-        $svar = KontrolleraIndata(['time'=>'01:00']);
-        if(empty($svar)){
-            $retur .="<p class='ok'>Lyckades kontrollera tid</p>";
-        } else {
-            $retur .="<p class='error'>Misslyckades med att kontrollera tid<br>"
-            . $svar[0]. " returnerades istället för förväntat tom sträng<br>"
-            . print_r($svar, true) . "</p>";
-        }
-
-        // Misslyckas kontrollera felaktig tid
-        $svar = KontrolleraIndata(['time'=>'09:00']);
-        if(empty($svar)){
-            $retur .="<p class='error'>Misslyckades med att kontrollera felaktig tid</p>";
-        } else {
-            $retur .="<p class='ok'>Misslyckades kontrollera felaktig tid<br>"
-            . print_r($svar, true) . "</p>";
-        }
-
-        // Lyckas kontrollera aktivitetsid
-        $svar = KontrolleraIndata(['activityId'=>'1']);
-        if(empty($svar)){
-            $retur .="<p class='ok'>Lyckades kontrollera aktivitetsid</p>";
-        } else {
-            $retur .="<p class='error'>Misslyckades med att kontrollera aktivitetsid<br>"
-            . $svar[0]. " returnerades istället för förväntat tom sträng<br>"
-            . print_r($svar, true) . "</p>";
-        }
-          // Misslyckas kontrollera aktivitetsid
-          $svar = KontrolleraIndata(['activityId'=>' ']);
-          if(empty($svar)){
-              $retur .="<p class='ok'>Lyckades kontrollera aktivitetsid</p>";
-          } else {
-              $retur .="<p class='error'>Misslyckades med att kontrollera felaktigt aktivitetsid<br>"
-              . $svar[0]. " returnerades istället för förväntat tom sträng<br>"
-              . print_r($svar, true) . "</p>";
-          }
-
-        
          $retur .= "<p class='error'>Inga tester implementerade</p>";
     } catch (Exception $ex) {
         $retur .= "<p class='error'>Något gick fel, meddelandet säger:<br> {$ex->getMessage()}</p>";
