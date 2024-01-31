@@ -479,16 +479,63 @@ function test_KontrolleraIndata(): string {
         // Test felaktigt datum 27.3.2023 lyckades
         $postdata["date"]="27.3.2023";
         $svar= KontrolleraIndata($postdata);
-        if(count($svar)===0){
+        if(count($svar)===2){
             $retur .="<p class='ok'>Test felaktigt datum 27.3.2023 lyckades</p>";
         }else{
             $retur .="<p class='error'>Test felaktigt datum 27.3.2023 misslyckades<br>"
             . count($svar) . " felmeddelanden rapporterades istället för förväntat 0<br>"
             . print_r($svar, true) . "</p>";
         }
-        
-
-         $retur .= "<p class='error'>Inga tester implementerade</p>";
+        // Test felaktigt datum 37.03.2023 lyckades
+        $postdata["date"]="37.03.2023";
+        $svar= KontrolleraIndata($postdata);
+        if(count($svar)===2){
+            $retur .="<p class='ok'>Test felaktigt datum 37.03.2023 lyckades</p>";
+        }else{
+            $retur .="<p class='error'>Test felaktigt datum 37.03.2023 misslyckades<br>"
+            . count($svar) . " felmeddelanden rapporterades istället för förväntat 0<br>"
+            . print_r($svar, true) . "</p>";
+        }
+        // Test felaktigt datum 37.03.2023 lyckades
+        $postdata["date"]="37.03.1";
+        $svar= KontrolleraIndata($postdata);
+        if(count($svar)===2){
+            $retur .="<p class='ok'>Test felaktigt datum 37.03.1 lyckades</p>";
+        }else{
+            $retur .="<p class='error'>Test felaktigt datum 37.03.1 misslyckades<br>"
+            . count($svar) . " felmeddelanden rapporterades istället för förväntat 0<br>"
+            . print_r($svar, true) . "</p>";
+        }
+        // Test felaktigt tidsformat 1:00 lyckades
+        $postdata["time"]="1:00";
+        $svar= KontrolleraIndata($postdata);
+        if(count($svar)===3){
+            $retur .="<p class='ok'>Test felaktigt tid 1:00 lyckades</p>";
+        }else{
+            $retur .="<p class='error'>Test felaktigt tid 1:00 misslyckades<br>"
+            . count($svar) . " felmeddelanden rapporterades istället för förväntat 0<br>"
+            . print_r($svar, true) . "</p>";
+        }
+        // Test felaktigt tidsoformat 1:0 lyckades
+        $postdata["time"]="1:0";
+        $svar= KontrolleraIndata($postdata);
+        if(count($svar)===3){
+            $retur .="<p class='ok'>Test felaktigt tid 1:0 lyckades</p>";
+        }else{
+            $retur .="<p class='error'>Test felaktigt tid 1:0 misslyckades<br>"
+            . count($svar) . " felmeddelanden rapporterades istället för förväntat 0<br>"
+            . print_r($svar, true) . "</p>";
+        }
+        // Test felaktigt tid över 8 timmar
+        $postdata["time"]="8:00";
+        $svar= KontrolleraIndata($postdata);
+        if(count($svar)===3){
+            $retur .="<p class='ok'>Test över 8 timmar lyckades</p>";
+        } else {
+            $retur .="<p class='error'>Test över 8 timmar misslyckades<br>"
+            . count($svar) . " felmeddelanden rapporterades istället för förväntat 0<br>"
+            . print_r($svar, true) . "</p>";
+        }
     } catch (Exception $ex) {
         $retur .= "<p class='error'>Något gick fel, meddelandet säger:<br> {$ex->getMessage()}</p>";
     }
@@ -537,10 +584,17 @@ function test_RaderaUppgift(): string {
             . print_r($svar->getContent(), true) . "</p>";
         }
         // Lyckas med att radera post som finns
-
+        $svar=raderaUppgift("1");
+        if($svar->getStatus()===200){
+            $retur .="<p class='ok'>Lyckades med att radera post, som förväntat</p>";
+        } else {
+            $retur .="<p class='error'>Misslyckades med att radera post<br>"
+            . $svar->getStatus() . " returnerades istället för förväntat 200<br>"
+            . print_r($svar->getContent(), true) . "</p>";
+        }
         // Hämta poster
         $poster= hamtasida("1");
-        if($poster->getStatus()===200){
+        if($poster->getStatus()===400){
             throw new Exception('Kunde inte hämta poster');
         }
         $uppgifter=$poster->getContent()->tasks;
@@ -567,7 +621,7 @@ function test_RaderaUppgift(): string {
             . print_r($svar->getContent(), true) . "</p>";
         }
         
-        $retur .= "<p class='error'>Inga tester implementerade</p>";
+        
     } catch (Exception $ex) {
         $retur .= "<p class='error'>Något gick fel, meddelandet säger:<br> {$ex->getMessage()}</p>";
     } finally {
