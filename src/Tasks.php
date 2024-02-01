@@ -212,6 +212,7 @@ function hamtaEnskildUppgift(string $id): Response {
         $retur->time=substr($row['tid'], 0, -3);
         $retur->activity=$row['namn'];
         $retur->activityId=$row['aktivitetid'];
+        $retur->description=$row['beskrivning'];
          return new Response($retur);
     } else {
          $retur=new stdClass();
